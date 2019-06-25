@@ -30,27 +30,6 @@ spec:
       {{- end }}
     spec:
       containers:
-        {{- if .Values.prometheus.jmx.enabled }}
-        - name: prometheus-jmx-exporter
-          image: "{{ .Values.prometheus.jmx.image }}:{{ .Values.prometheus.jmx.imageTag }}"
-          command:
-          - java
-          - -XX:+UnlockExperimentalVMOptions
-          - -XX:+UseCGroupMemoryLimitForHeap
-          - -XX:MaxRAMFraction=1
-          - -XshowSettings:vm
-          - -jar
-          - jmx_prometheus_httpserver.jar
-          - {{ .Values.prometheus.jmx.port | quote }}
-          - /etc/jmx-kafka-connect/jmx-kafka-connect-prometheus.yml
-          ports:
-          - containerPort: {{ .Values.prometheus.jmx.port }}
-          resources:
-{{ toYaml .Values.prometheus.jmx.resources | indent 12 }}
-          volumeMounts:
-          - name: jmx-config
-            mountPath: /etc/jmx-kafka-connect
-        {{- end }}
         - name: {{ template "cp-kafka-connect.name" . }}-server
           image: "{{ .Values.image }}:{{ .Values.imageTag }}"
           imagePullPolicy: "{{ .Values.imagePullPolicy }}"
@@ -97,6 +76,27 @@ spec:
             - name: KAFKA_JMX_PORT
               value: "{{ .Values.jmx.port }}"
             {{- end }}
+        {{- if .Values.prometheus.jmx.enabled }}
+        - name: prometheus-jmx-exporter
+          image: "{{ .Values.prometheus.jmx.image }}:{{ .Values.prometheus.jmx.imageTag }}"
+          command:
+          - java
+          - -XX:+UnlockExperimentalVMOptions
+          - -XX:+UseCGroupMemoryLimitForHeap
+          - -XX:MaxRAMFraction=1
+          - -XshowSettings:vm
+          - -jar
+          - jmx_prometheus_httpserver.jar
+          - {{ .Values.prometheus.jmx.port | quote }}
+          - /etc/jmx-kafka-connect/jmx-kafka-connect-prometheus.yml
+          ports:
+          - containerPort: {{ .Values.prometheus.jmx.port }}
+          resources:
+{{ toYaml .Values.prometheus.jmx.resources | indent 12 }}
+          volumeMounts:
+          - name: jmx-config
+            mountPath: /etc/jmx-kafka-connect
+        {{- end }}
       {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
