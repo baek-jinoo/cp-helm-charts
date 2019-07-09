@@ -7,7 +7,7 @@
 ## ------------------------------------------------------
 
 ## Number of Scheme Registry Pod
-replicaCount: 1
+replicaCount: 3
 
 ## Image Info
 ## ref: https://hub.docker.com/r/confluentinc/cp-schema-registry/
@@ -34,7 +34,7 @@ customEnv: {}
 servicePort: 8081
 
 ## Schema registry JVM Heap Option
-heapOptions: "-Xms512M -Xmx512M"
+heapOptions: "-Xms6g -Xmx6g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80"
 
 ## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
 ## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
@@ -42,17 +42,17 @@ heapOptions: "-Xms512M -Xmx512M"
 kafka:
   bootstrapServers: "PLAINTEXT://bootstrap.kafka.svc.cluster.local:9092"
 
-resources: {}
+resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
+  limits:
+   cpu: 1000m
+   memory: 8128Mi
+  requests:
+   cpu: 1000m
+   memory: 8128Mi
 
 ## Custom pod annotations
 podAnnotations: {}
