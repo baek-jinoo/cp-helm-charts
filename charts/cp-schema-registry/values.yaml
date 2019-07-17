@@ -41,7 +41,7 @@ heapOptions: "-Xms1g -Xmx1g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMil
 ## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
 ## Charts uses Kafka Coordinator Master Election: https://docs.confluent.io/current/schema-registry/docs/design.html#kafka-coordinator-master-election
 kafka:
-  bootstrapServers: "PLAINTEXT://bootstrap.kafka.svc.cluster.local:9092"
+  bootstrapServers: "PLAINTEXT://my-cluster-kafka-bootstrap:9092"
 
 resources:
   # We usually recommend not to specify default resources and to leave this as a conscious
