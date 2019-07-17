@@ -25,7 +25,8 @@ imagePullSecrets:
 
 ## Schema Registry Settings Overrides
 ## Configuration Options can be found here: https://docs.confluent.io/current/schema-registry/docs/config.html
-configurationOverrides: {}
+configurationOverrides: 
+  "kafkastore.topic.replication.factor": 4
 
 ## Additional env variables
 customEnv: {}
@@ -34,7 +35,7 @@ customEnv: {}
 servicePort: 8081
 
 ## Schema registry JVM Heap Option
-heapOptions: "-Xms1g -Xmx2g"
+heapOptions: "-Xms1g -Xmx1g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80"
 
 ## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
 ## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
