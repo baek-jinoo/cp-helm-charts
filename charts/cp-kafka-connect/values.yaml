@@ -69,6 +69,15 @@ tolerations: {}
 jmx:
   port: 5555
 
+gcp:
+  pubsub:
+    service_account:
+      subscriber:
+        key_file: "key.json"
+        mount_path: "/etc/pubsub-subscriber"
+        secret_name: "pubsub-key-subscriber"
+        enabled: true
+
 ## Prometheus Exporter Configuration
 ## ref: https://prometheus.io/docs/instrumenting/exporters/
 prometheus:
