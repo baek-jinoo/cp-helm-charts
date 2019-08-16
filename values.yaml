@@ -2,7 +2,7 @@
 ## Zookeeper
 ## ------------------------------------------------------
 cp-zookeeper:
-  enabled: true
+  enabled: false
   servers: 3
   image: confluentinc/cp-zookeeper
   imageTag: 5.3.0
@@ -37,7 +37,7 @@ cp-zookeeper:
 ## Kafka
 ## ------------------------------------------------------
 cp-kafka:
-  enabled: true
+  enabled: false
   brokers: 3
   image: confluentinc/cp-enterprise-kafka
   imageTag: 5.3.0
@@ -68,64 +68,89 @@ cp-schema-registry:
   enabled: true
   image: confluentinc/cp-schema-registry
   imageTag: 5.3.0
+  replicaCount: 3
   ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
   ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
   imagePullSecrets:
   #  - name: "regcred"
-  heapOptions: "-Xms512M -Xmx512M"
-  resources: {}
-  ## If you do want to specify resources, uncomment the following lines, adjust them as necessary,
-  ## and remove the curly braces after 'resources:'
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  heapOptions: "-Xms2g -Xmx2g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80"
+  kafka:
+    bootstrapServers: "PLAINTEXT://cluster-01-kafka-bootstrap:9092"
+  resources:
+  limits:
+    cpu: 1000m
+    memory: 2128Mi
+  requests:
+    cpu: 1000m
+    memory: 2128Mi
 
 ## ------------------------------------------------------
 ## REST Proxy
 ## ------------------------------------------------------
 cp-kafka-rest:
+  replicaCount: 3
   enabled: true
   image: confluentinc/cp-kafka-rest
   imageTag: 5.3.0
+  cp-zookeeper:
+    url: "example-zookeepercluster-client.zookeeper.svc.cluster.local:2181"
   ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
   ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
   imagePullSecrets:
   #  - name: "regcred"
-  heapOptions: "-Xms512M -Xmx512M"
-  resources: {}
-  ## If you do want to specify resources, uncomment the following lines, adjust them as necessary,
-  ## and remove the curly braces after 'resources:'
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  heapOptions: "-Xms1g -Xmx1g"
+  cp-zookeeper:
+    url: "cluster-01-zookeeper-client:2181"
+    service-name: "cluster-01-zookeeper-client:2181"
+  resources:
+    limits:
+     cpu: 1000m
+     memory: 1200Mi
+    requests:
+     cpu: 1000m
+     memory: 1200Mi
 
 ## ------------------------------------------------------
 ## Kafka Connect
 ## ------------------------------------------------------
 cp-kafka-connect:
+  bootstrapServers: "PLAINTEXT://cluster-01-kafka-bootstrap:9092"
   enabled: true
-  image: confluentinc/cp-kafka-connect
+  image: jinoo/cp-kafka-connect
   imageTag: 5.3.0
+  replicaCount: 3
+  configurationOverrides:
+    "plugin.path": "/usr/share/java,/usr/share/confluent-hub-components,/etc/kafka/connect"
+    "key.converter": "io.confluent.connect.avro.AvroConverter"
+    "value.converter": "io.confluent.connect.avro.AvroConverter"
+    "key.converter.schemas.enable": "false"
+    "key.converter.schemas.enable": "false"
+    "value.converter.schemas.enable": "false"
+    "internal.key.converter": "org.apache.kafka.connect.json.JsonConverter"
+    "internal.value.converter": "org.apache.kafka.connect.json.JsonConverter"
+    "config.storage.replication.factor": "3"
+    "offset.storage.replication.factor": "3"
+    "status.storage.replication.factor": "3"
   ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
   ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
   imagePullSecrets:
   #  - name: "regcred"
-  heapOptions: "-Xms512M -Xmx512M"
-  resources: {}
-  ## If you do want to specify resources, uncomment the following lines, adjust them as necessary,
-  ## and remove the curly braces after 'resources:'
-  #  limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  #  requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  heapOptions: "-Xms2g -Xmx2g"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4000Mi
+    requests:
+      cpu: 2000m
+      memory: 3000Mi
+  gcp:
+    pubsub:
+      service_account:
+        subscriber:
+          key_file: "key.json"
+          mount_path: "/etc/pubsub-subscriber"
+          secret_name: "pubsub-key-subscriber"
+          enabled: true
 
 ## ------------------------------------------------------
 ## KSQL Server
@@ -134,19 +159,38 @@ cp-ksql-server:
   enabled: true
   image: confluentinc/cp-ksql-server
   imageTag: 5.3.0
+  replicaCount: 3
   ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
   ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
   imagePullSecrets:
   #  - name: "regcred"
-  heapOptions: "-Xms512M -Xmx512M"
+  heapOptions: "-Xms4g -Xmx4g"
+  external:
+    enabled: true
+    type: LoadBalancer
+    externalTrafficPolicy:
+    port: 8088
+    ports:
+      protocol: TCP
+    annotations:
+      "cloud.google.com/load-balancer-type": "Internal"
+  kafka:
+    bootstrapServers: "PLAINTEXT://cluster-01-kafka-bootstrap:9092"
   ksql:
     headless: false
+  resources:
+    limits:
+     cpu: 2000m
+     memory: 4300Mi
+    requests:
+     cpu: 2000m
+     memory: 4300Mi
 
 ## ------------------------------------------------------
 ## Control Center
 ## ------------------------------------------------------
 cp-control-center:
-  enabled: true
+  enabled: false
   image: confluentinc/cp-enterprise-control-center
   imageTag: 5.2.0
   ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.

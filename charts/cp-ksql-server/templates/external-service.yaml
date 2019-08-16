@@ -16,7 +16,9 @@ metadata:
     heritage: {{ .Release.Service }}
 spec:
   type: {{ .Values.external.type }}
+  {{- if .Values.external.externalTrafficPolicy }}
   externalTrafficPolicy: {{ .Values.external.externalTrafficPolicy }}
+  {{- end }}
   {{- if .Values.external.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
   {{- range $cidr := .Values.external.loadBalancerSourceRanges }}
@@ -27,6 +29,9 @@ spec:
     - name: server-proxy
       port: {{ .Values.external.port }}
       targetPort: {{ .Values.servicePort }}
+      {{- if .Values.external.ports.protocol }}
+        protocol: {{ .Values.external.ports.protocol }}
+      {{- end }}
   selector:
     app: {{ template "cp-ksql-server.name" . }}
     release: {{ .Release.Name }}
