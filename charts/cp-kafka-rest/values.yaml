@@ -100,8 +100,4 @@ affinity:
           operator: In
           values:
             - kafka-pool
-        - key: test2
-          operator: Inn
-          values:
-            - kafka-pool2
 

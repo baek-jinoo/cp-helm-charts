@@ -84,3 +84,14 @@ prometheus:
     port: 5556
 
     resources: {}
+
+affinity:
+  enabled: true
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+        - key: pool-name
+          operator: In
+          values:
+            - kafka-pool
+
